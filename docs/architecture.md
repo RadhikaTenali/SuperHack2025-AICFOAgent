@@ -1,60 +1,109 @@
-# Architecture Overview
+# AI CFO Agent Architecture
 
-## System Components
+## Overview
+The AI CFO Agent is an autonomous financial management system designed specifically for Managed Service Providers (MSPs). It leverages AWS Bedrock, Nova ACT, and Model Context Protocol (MCP) to provide predictive insights, automated optimizations, and digital twin simulations.
 
-### Frontend (React)
-- Dashboard for financial insights
-- Interactive charts and visualizations
-- Real-time data updates
-- User management interface
+## Architecture Components
 
-### Backend (FastAPI)
-- RESTful API endpoints
-- Business logic processing
-- Data validation and transformation
-- Integration with external services
+### Frontend (React + AWS Amplify)
+- **Technology**: React 19, Material-UI, Axios
+- **Hosting**: AWS Amplify (for production)
+- **Features**:
+  - Real-time dashboard with financial insights
+  - Interactive scenario simulation
+  - Automated report generation
+  - Mobile-responsive design
 
-### AI/ML Layer
-- AWS Bedrock integration
-- Nova ACT for autonomous actions
-- Model Context Protocol (MCP)
-- Predictive analytics models
+### Backend (FastAPI + AWS Bedrock)
+- **Technology**: FastAPI, Python 3.9+, AWS Bedrock
+- **Features**:
+  - RESTful API endpoints
+  - AWS Bedrock integration for AI reasoning
+  - Mock SuperOps data integration
+  - Real-time anomaly detection
+
+### AI/ML Components
+- **AWS Bedrock**: Core AI reasoning and natural language processing
+- **Nova ACT**: Browser automation for license tracking
+- **MCP (Model Context Protocol)**: Multi-agent workflow orchestration
+- **Digital Twin**: Scenario simulation and predictive modeling
 
 ### Data Layer
-- SuperOps API integration
-- Financial data processing
-- Real-time data streaming
-- Data storage and caching
+- **Mock Data**: Simulated SuperOps PSA/RMM data
+- **AWS S3**: Document and report storage
+- **Bedrock Vector Store**: RAG (Retrieval Augmented Generation) data
 
-## Technology Stack
+## Key Features Implementation
 
-### Frontend
-- React 18
-- Material-UI
-- Axios for API calls
-- React Router for navigation
+### 1. Profitability Dashboard
+- Real-time client margin analysis
+- Risk level assessment
+- Automated recommendations
 
-### Backend
-- FastAPI
-- Python 3.8+
-- Uvicorn ASGI server
-- Pydantic for data validation
+### 2. License Optimizer
+- Usage tracking across vendor portals
+- Automated license downgrades
+- Cost savings calculations
 
-### AI/ML
-- AWS Bedrock
-- LangChain
-- Amazon Bedrock Agent
-- Custom ML models
+### 3. Upsell Finder
+- Ticket pattern analysis
+- Service recommendation engine
+- Automated proposal generation
 
-### Infrastructure
-- AWS Cloud Services
-- Docker containers
-- CI/CD pipeline
-- Monitoring and logging
+### 4. Scenario Simulation (Digital Twin)
+- Client churn impact modeling
+- Service addition ROI analysis
+- Price increase risk assessment
 
-## Data Flow
-1. SuperOps API provides MSP data
-2. Backend processes and validates data
-3. AI models analyze patterns and generate insights
-4. Frontend displays real-time dashboards
-5. Autonomous actions triggered based on thresholds
+### 5. Anomaly Detection
+- Real-time monitoring of financial metrics
+- Automated alert generation
+- Resolution recommendations
+
+### 6. Weekly Reports
+- Automated report generation
+- Email/Slack distribution
+- Executive summary creation
+
+## Integration Points
+
+### SuperOps Integration
+- PSA/RMM data ingestion
+- Automated quote generation
+- Ticket analysis for upsell opportunities
+
+### AWS Services
+- **Bedrock**: AI reasoning and language models
+- **S3**: Data storage and document management
+- **Lambda**: Serverless function execution
+- **Amplify**: Frontend hosting and deployment
+
+### Third-Party Integrations
+- **Microsoft 365**: License usage tracking
+- **Adobe Creative Suite**: License optimization
+- **Security Vendors**: Compliance monitoring
+
+## Security & Compliance
+- AWS IAM role-based access control
+- Bedrock Guardrails for ethical AI outputs
+- Data encryption in transit and at rest
+- HIPAA compliance for healthcare MSPs
+
+## Scalability
+- Serverless architecture for automatic scaling
+- Multi-tenant design for MSP marketplace
+- API rate limiting and caching
+- Horizontal scaling capabilities
+
+## Development Workflow
+1. Local development with mock data
+2. AWS Bedrock integration for AI features
+3. SuperOps API integration for production
+4. Deployment via AWS Amplify and Lambda
+
+## Future Enhancements
+- Real-time SuperOps data synchronization
+- Advanced ML models for predictive analytics
+- Mobile application development
+- Multi-language support
+- Advanced reporting and analytics

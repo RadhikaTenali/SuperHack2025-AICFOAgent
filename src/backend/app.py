@@ -4,16 +4,21 @@ import uvicorn
 import boto3
 from botocore.exceptions import ClientError
 import os
+import json
+import random
+from datetime import datetime, timedelta
+from typing import List, Dict, Any
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
 
-app = FastAPI()
+app = FastAPI(title="AI CFO Agent", description="Autonomous CFO with Digital Twin for MSPs")
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,7 +27,7 @@ app.add_middleware(
 # Initialize AWS Bedrock client
 try:
     bedrock_client = boto3.client(
-        service_name='bedrock-agent-runtime',
+        service_name='bedrock-runtime',
         region_name=os.getenv('AWS_REGION', 'us-west-2'),
         aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
         aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -31,27 +36,359 @@ except Exception as e:
     print(f"Warning: Could not initialize AWS Bedrock client: {e}")
     bedrock_client = None
 
+# Mock SuperOps Data
+MOCK_CLIENTS = {
+    "client_x": {
+        "name": "TechCorp Solutions",
+        "monthly_revenue": 1500,
+        "monthly_cost": 2000,
+        "margin": -500,
+        "contract_value": 18000,
+        "services": ["IT Support", "Cloud Management"],
+        "tickets_last_month": 45,
+        "security_incidents": 5,
+        "licenses": {
+            "microsoft_365": {"total": 50, "used": 30, "cost_per_license": 12},
+            "adobe_creative": {"total": 10, "used": 3, "cost_per_license": 52}
+        }
+    },
+    "client_y": {
+        "name": "RetailMax Inc",
+        "monthly_revenue": 3500,
+        "monthly_cost": 2800,
+        "margin": 700,
+        "contract_value": 42000,
+        "services": ["Network Management", "Backup Services"],
+        "tickets_last_month": 12,
+        "security_incidents": 8,
+        "licenses": {
+            "microsoft_365": {"total": 25, "used": 24, "cost_per_license": 12},
+            "antivirus": {"total": 30, "used": 28, "cost_per_license": 8}
+        }
+    },
+    "client_z": {
+        "name": "HealthFirst Medical",
+        "monthly_revenue": 5000,
+        "monthly_cost": 3200,
+        "margin": 1800,
+        "contract_value": 60000,
+        "services": ["Cybersecurity", "Compliance Management"],
+        "tickets_last_month": 8,
+        "security_incidents": 1,
+        "licenses": {
+            "microsoft_365": {"total": 40, "used": 38, "cost_per_license": 12},
+            "security_suite": {"total": 15, "used": 15, "cost_per_license": 45}
+        }
+    }
+}
+
+class ScenarioRequest(BaseModel):
+    scenario_type: str
+    client_id: str
+    parameters: Dict[str, Any]
+
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to AI CFO Agent"}
+    return {"message": "Welcome to AI CFO Agent - Autonomous CFO with Digital Twin for MSPs"}
 
-@app.get("/predictive-insights/{client_id}")
-def get_predictive_insights(client_id: str):
-    try:
-        # Placeholder for actual logic to fetch predictive insights
-        insights = {
-            "client_id": client_id,
-            "current_margin": "-$500/month",
-            "cashflow_risk": "$15K gap in 3 months if churns",
-            "recommendation": "renegotiate contract or offer additional services"
-        }
-        return insights
-    except ClientError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@app.get("/dashboard/overview")
+def get_dashboard_overview():
+    """Get overall MSP financial overview"""
+    total_revenue = sum(client["monthly_revenue"] for client in MOCK_CLIENTS.values())
+    total_costs = sum(client["monthly_cost"] for client in MOCK_CLIENTS.values())
+    total_margin = total_revenue - total_costs
+    
+    unprofitable_clients = [
+        {"id": k, "name": v["name"], "margin": v["margin"]} 
+        for k, v in MOCK_CLIENTS.items() if v["margin"] < 0
+    ]
+    
+    return {
+        "total_monthly_revenue": total_revenue,
+        "total_monthly_costs": total_costs,
+        "total_margin": total_margin,
+        "margin_percentage": round((total_margin / total_revenue) * 100, 1),
+        "client_count": len(MOCK_CLIENTS),
+        "unprofitable_clients": unprofitable_clients,
+        "risk_alerts": len(unprofitable_clients)
+    }
+
+@app.get("/profitability/clients")
+def get_client_profitability():
+    """Get profitability analysis for all clients"""
+    clients = []
+    for client_id, data in MOCK_CLIENTS.items():
+        risk_level = "high" if data["margin"] < 0 else "medium" if data["margin"] < 500 else "low"
+        
+        clients.append({
+            "id": client_id,
+            "name": data["name"],
+            "monthly_revenue": data["monthly_revenue"],
+            "monthly_cost": data["monthly_cost"],
+            "margin": data["margin"],
+            "margin_percentage": round((data["margin"] / data["monthly_revenue"]) * 100, 1),
+            "risk_level": risk_level,
+            "contract_value": data["contract_value"],
+            "recommendation": get_profitability_recommendation(data)
+        })
+    
+    return {"clients": clients}
+
+@app.get("/licenses/optimization")
+def get_license_optimization():
+    """Get license optimization opportunities"""
+    optimizations = []
+    total_savings = 0
+    
+    for client_id, client_data in MOCK_CLIENTS.items():
+        for license_type, license_data in client_data["licenses"].items():
+            unused = license_data["total"] - license_data["used"]
+            if unused > 0:
+                monthly_savings = unused * license_data["cost_per_license"]
+                annual_savings = monthly_savings * 12
+                total_savings += annual_savings
+                
+                optimizations.append({
+                    "client_id": client_id,
+                    "client_name": client_data["name"],
+                    "license_type": license_type.replace("_", " ").title(),
+                    "total_licenses": license_data["total"],
+                    "used_licenses": license_data["used"],
+                    "unused_licenses": unused,
+                    "cost_per_license": license_data["cost_per_license"],
+                    "monthly_savings": monthly_savings,
+                    "annual_savings": annual_savings,
+                    "utilization_rate": round((license_data["used"] / license_data["total"]) * 100, 1)
+                })
+    
+    return {
+        "optimizations": optimizations,
+        "total_annual_savings": total_savings,
+        "total_monthly_savings": total_savings / 12
+    }
+
+@app.get("/upsell/opportunities")
+def get_upsell_opportunities():
+    """Identify upsell opportunities based on ticket patterns"""
+    opportunities = []
+    
+    for client_id, client_data in MOCK_CLIENTS.items():
+        upsells = []
+        
+        # Security upsell based on incidents
+        if client_data["security_incidents"] >= 5:
+            upsells.append({
+                "service": "Premium Cybersecurity Package",
+                "monthly_value": 2000,
+                "annual_value": 24000,
+                "confidence": 85,
+                "reason": f"{client_data['security_incidents']} security incidents last month"
+            })
+        
+        # Backup upsell based on tickets
+        if client_data["tickets_last_month"] >= 20:
+            upsells.append({
+                "service": "Enhanced Backup & Recovery",
+                "monthly_value": 800,
+                "annual_value": 9600,
+                "confidence": 70,
+                "reason": f"{client_data['tickets_last_month']} support tickets indicate system instability"
+            })
+        
+        # Compliance upsell for healthcare
+        if "health" in client_data["name"].lower():
+            upsells.append({
+                "service": "HIPAA Compliance Monitoring",
+                "monthly_value": 1200,
+                "annual_value": 14400,
+                "confidence": 90,
+                "reason": "Healthcare industry requires enhanced compliance monitoring"
+            })
+        
+        if upsells:
+            opportunities.append({
+                "client_id": client_id,
+                "client_name": client_data["name"],
+                "current_monthly_revenue": client_data["monthly_revenue"],
+                "upsell_opportunities": upsells,
+                "total_potential_monthly": sum(u["monthly_value"] for u in upsells),
+                "total_potential_annual": sum(u["annual_value"] for u in upsells)
+            })
+    
+    return {"opportunities": opportunities}
+
+@app.post("/scenario/simulate")
+def simulate_scenario(request: ScenarioRequest):
+    """Simulate what-if scenarios using Digital Twin"""
+    client_data = MOCK_CLIENTS.get(request.client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    if request.scenario_type == "client_churn":
+        return simulate_client_churn(request.client_id, client_data, request.parameters)
+    elif request.scenario_type == "service_addition":
+        return simulate_service_addition(request.client_id, client_data, request.parameters)
+    elif request.scenario_type == "price_increase":
+        return simulate_price_increase(request.client_id, client_data, request.parameters)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid scenario type")
+
+@app.get("/anomalies/detect")
+def detect_anomalies():
+    """Detect billing errors, low-margin clients, and budget overruns"""
+    anomalies = []
+    
+    for client_id, client_data in MOCK_CLIENTS.items():
+        # Low margin anomaly
+        if client_data["margin"] < 0:
+            anomalies.append({
+                "type": "low_margin",
+                "severity": "high",
+                "client_id": client_id,
+                "client_name": client_data["name"],
+                "description": f"Client operating at {client_data['margin']} monthly loss",
+                "impact": f"${abs(client_data['margin']) * 12} annual loss",
+                "recommendation": "Renegotiate contract or terminate relationship"
+            })
+        
+        # High ticket volume anomaly
+        if client_data["tickets_last_month"] > 30:
+            anomalies.append({
+                "type": "high_support_load",
+                "severity": "medium",
+                "client_id": client_id,
+                "client_name": client_data["name"],
+                "description": f"{client_data['tickets_last_month']} tickets last month (above normal)",
+                "impact": "Increased support costs",
+                "recommendation": "Investigate root cause or adjust service level"
+            })
+        
+        # License utilization anomaly
+        for license_type, license_data in client_data["licenses"].items():
+            utilization = (license_data["used"] / license_data["total"]) * 100
+            if utilization < 60:
+                unused = license_data["total"] - license_data["used"]
+                monthly_waste = unused * license_data["cost_per_license"]
+                anomalies.append({
+                    "type": "license_waste",
+                    "severity": "medium",
+                    "client_id": client_id,
+                    "client_name": client_data["name"],
+                    "description": f"{license_type.replace('_', ' ').title()}: {unused} unused licenses ({utilization:.1f}% utilization)",
+                    "impact": f"${monthly_waste}/month waste",
+                    "recommendation": f"Downgrade by {unused} licenses"
+                })
+    
+    return {"anomalies": anomalies}
+
+@app.get("/reports/weekly")
+def get_weekly_report():
+    """Generate automated weekly financial summary"""
+    overview = get_dashboard_overview()
+    profitability = get_client_profitability()
+    licenses = get_license_optimization()
+    upsells = get_upsell_opportunities()
+    anomalies = detect_anomalies()
+    
+    return {
+        "report_date": datetime.now().isoformat(),
+        "period": "Weekly Summary",
+        "overview": overview,
+        "key_metrics": {
+            "total_revenue": overview["total_monthly_revenue"],
+            "total_margin": overview["total_margin"],
+            "margin_percentage": overview["margin_percentage"],
+            "at_risk_clients": len(overview["unprofitable_clients"]),
+            "potential_savings": licenses["total_annual_savings"],
+            "upsell_potential": sum(opp["total_potential_annual"] for opp in upsells["opportunities"])
+        },
+        "action_items": generate_action_items(anomalies["anomalies"], upsells["opportunities"])
+    }
 
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "bedrock_available": bedrock_client is not None}
+
+# Helper functions
+def get_profitability_recommendation(client_data):
+    if client_data["margin"] < 0:
+        return "URGENT: Renegotiate contract or consider termination"
+    elif client_data["margin"] < 500:
+        return "Review service delivery efficiency and pricing"
+    else:
+        return "Healthy margin - consider upsell opportunities"
+
+def simulate_client_churn(client_id, client_data, parameters):
+    months_ahead = parameters.get("months", 3)
+    revenue_impact = client_data["monthly_revenue"] * months_ahead
+    cost_savings = client_data["monthly_cost"] * months_ahead
+    net_impact = revenue_impact - cost_savings
+    
+    return {
+        "scenario": "Client Churn",
+        "client_id": client_id,
+        "timeframe_months": months_ahead,
+        "revenue_loss": revenue_impact,
+        "cost_savings": cost_savings,
+        "net_impact": -net_impact if net_impact > 0 else abs(net_impact),
+        "recommendation": "Focus on client retention" if net_impact > 0 else "Acceptable loss due to unprofitability"
+    }
+
+def simulate_service_addition(client_id, client_data, parameters):
+    service_revenue = parameters.get("monthly_revenue", 1000)
+    service_cost = parameters.get("monthly_cost", 600)
+    months = parameters.get("months", 12)
+    
+    new_margin = (client_data["margin"] + (service_revenue - service_cost)) * months
+    
+    return {
+        "scenario": "Service Addition",
+        "client_id": client_id,
+        "new_service_revenue": service_revenue * months,
+        "new_service_cost": service_cost * months,
+        "annual_margin_improvement": (service_revenue - service_cost) * months,
+        "new_total_margin": new_margin,
+        "roi_percentage": round(((service_revenue - service_cost) / service_cost) * 100, 1)
+    }
+
+def simulate_price_increase(client_id, client_data, parameters):
+    increase_percentage = parameters.get("percentage", 10)
+    new_revenue = client_data["monthly_revenue"] * (1 + increase_percentage / 100)
+    margin_improvement = (new_revenue - client_data["monthly_revenue"]) * 12
+    
+    return {
+        "scenario": "Price Increase",
+        "client_id": client_id,
+        "current_monthly_revenue": client_data["monthly_revenue"],
+        "new_monthly_revenue": new_revenue,
+        "increase_percentage": increase_percentage,
+        "annual_margin_improvement": margin_improvement,
+        "churn_risk": "low" if increase_percentage <= 5 else "medium" if increase_percentage <= 15 else "high"
+    }
+
+def generate_action_items(anomalies, upsell_opportunities):
+    actions = []
+    
+    # High priority anomalies
+    for anomaly in anomalies:
+        if anomaly["severity"] == "high":
+            actions.append({
+                "priority": "high",
+                "action": anomaly["recommendation"],
+                "client": anomaly["client_name"],
+                "impact": anomaly["impact"]
+            })
+    
+    # Top upsell opportunities
+    for opp in upsell_opportunities[:3]:  # Top 3
+        actions.append({
+            "priority": "medium",
+            "action": f"Present upsell proposal to {opp['client_name']}",
+            "client": opp["client_name"],
+            "impact": f"${opp['total_potential_annual']} annual potential"
+        })
+    
+    return actions
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

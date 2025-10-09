@@ -6,3 +6,4 @@ boto3==1.26.161
 python-dotenv==1.0.0
 pytest==7.4.0
 pytest-asyncio==0.21.1
+pydantic==1.10.8
