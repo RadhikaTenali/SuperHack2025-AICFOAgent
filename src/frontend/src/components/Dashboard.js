@@ -1,12 +1,17 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Container } from '@mui/material';
+import PredictiveInsights from './PredictiveInsights';
 
 const Dashboard = () => {
   return (
-    <Box>
-      <Typography variant="h4">AI CFO Agent Dashboard</Typography>
-      {/* Add your dashboard components here */}
-    </Box>
+    <Container maxWidth="lg">
+      <Box sx={{ mt: 4, mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          AI CFO Agent Dashboard
+        </Typography>
+        <PredictiveInsights clientId="X" />
+      </Box>
+    </Container>
   );
 };
 
