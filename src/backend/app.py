@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import boto3
@@ -7,34 +7,36 @@ import os
 import json
 import random
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import asyncio
+
+# Import new AI CFO Agent modules
+from bedrock_agent import bedrock_agent
+from mcp_orchestrator import mcp_orchestrator
+from nova_act_automation import nova_act
+from autonomous_actions import autonomous_engine, ActionType
+from alerts_integration import alerts_manager
+from vector_store_rag import vector_store
+from s3_storage import s3_store
 
 load_dotenv()
 
-app = FastAPI(title="AI CFO Agent", description="Autonomous CFO with Digital Twin for MSPs")
+app = FastAPI(
+    title="AI CFO Agent - Enhanced", 
+    description="Autonomous CFO with Digital Twin, Multi-Agent AI, and Predictive Analytics for MSPs",
+    version="2.0.0"
+)
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Initialize AWS Bedrock client
-try:
-    bedrock_client = boto3.client(
-        service_name='bedrock-runtime',
-        region_name=os.getenv('AWS_REGION', 'us-west-2'),
-        aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-        aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
-    )
-except Exception as e:
-    print(f"Warning: Could not initialize AWS Bedrock client: {e}")
-    bedrock_client = None
 
 # Mock SuperOps Data
 MOCK_CLIENTS = {
@@ -307,7 +309,407 @@ def get_weekly_report():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "bedrock_available": bedrock_client is not None}
+    """Health check with component status"""
+    return {
+        "status": "healthy",
+        "version": "2.0.0",
+        "components": {
+            "bedrock_agent": bedrock_agent.agent_available,
+            "mcp_orchestrator": True,
+            "nova_act": True,
+            "autonomous_engine": True,
+            "alerts_manager": True,
+            "vector_store": vector_store.vector_store_available,
+            "s3_store": s3_store.s3_available
+        }
+    }
+
+# ============================================================================
+# NEW ADVANCED AI CFO ENDPOINTS
+# ============================================================================
+
+@app.post("/ai/comprehensive-analysis/{client_id}")
+async def comprehensive_client_analysis(client_id: str, background_tasks: BackgroundTasks):
+    """
+    Multi-agent comprehensive analysis using MCP orchestration
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    # Run comprehensive analysis using MCP
+    analysis = await mcp_orchestrator.orchestrate_comprehensive_analysis(client_data)
+    
+    # Store in S3 for historical tracking
+    background_tasks.add_task(s3_store.store_analysis_result, "comprehensive", analysis)
+    
+    # Store in vector store for RAG
+    background_tasks.add_task(vector_store.store_client_financial_data, client_id, client_data)
+    
+    # Send alerts if critical issues detected
+    if analysis.get("profitability", {}).get("priority") == "critical":
+        background_tasks.add_task(alerts_manager.send_unprofitable_client_alert, client_data)
+    
+    return analysis
+
+@app.post("/ai/license-optimization-workflow")
+async def run_license_optimization_workflow(background_tasks: BackgroundTasks):
+    """
+    Multi-agent workflow for license optimization across all clients
+    """
+    # Run license optimization workflow
+    result = await mcp_orchestrator.orchestrate_license_optimization_workflow(MOCK_CLIENTS)
+    
+    # Store results
+    background_tasks.add_task(s3_store.store_analysis_result, "license_optimization", result)
+    
+    return result
+
+@app.post("/ai/upsell-workflow/{client_id}")
+async def run_upsell_workflow(client_id: str, background_tasks: BackgroundTasks):
+    """
+    Multi-agent workflow for upsell identification and proposal generation
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    # Run upsell workflow
+    result = await mcp_orchestrator.orchestrate_upsell_workflow(client_data)
+    
+    # Store results
+    background_tasks.add_task(s3_store.store_analysis_result, "upsell_workflow", result)
+    
+    # Send alert for opportunities
+    if result.get("status") == "ready_for_review":
+        opportunities = result.get("opportunities", {}).get("opportunities", [])
+        if opportunities:
+            background_tasks.add_task(
+                alerts_manager.send_upsell_opportunity_alert,
+                client_data,
+                opportunities[0]
+            )
+    
+    return result
+
+@app.get("/nova-act/track-licenses/{client_id}")
+async def track_licenses_with_nova_act(client_id: str):
+    """
+    Use Nova ACT to track licenses from vendor portals
+    """
+    # Mock credentials (in production, retrieve from secure storage)
+    credentials = {
+        "microsoft_365": {"tenant_id": "mock", "auth_token": "mock"},
+        "adobe": {"admin_email": "mock", "password": "mock"}
+    }
+    
+    # Track licenses
+    tracking_result = await nova_act.track_all_vendors(client_id, credentials)
+    
+    # Store in S3
+    await s3_store.store_license_tracking_data(client_id, tracking_result)
+    
+    return tracking_result
+
+@app.post("/nova-act/auto-reclaim-licenses/{client_id}")
+async def auto_reclaim_licenses(client_id: str, background_tasks: BackgroundTasks):
+    """
+    Automatically reclaim unused licenses using Nova ACT
+    """
+    # First track current licenses
+    credentials = {
+        "microsoft_365": {"tenant_id": "mock", "auth_token": "mock"},
+        "adobe": {"admin_email": "mock", "password": "mock"}
+    }
+    
+    license_data = await nova_act.track_all_vendors(client_id, credentials)
+    
+    # Auto-reclaim unused licenses
+    reclaim_result = await nova_act.auto_reclaim_unused_licenses(
+        client_id,
+        license_data,
+        threshold_days=30
+    )
+    
+    # Store results
+    background_tasks.add_task(s3_store.store_analysis_result, "license_reclaim", reclaim_result)
+    
+    # Send alert
+    client_data = MOCK_CLIENTS.get(client_id, {})
+    client_data["id"] = client_id
+    background_tasks.add_task(
+        alerts_manager.send_license_optimization_alert,
+        client_data,
+        {"monthly_savings": reclaim_result.get("total_annual_savings", 0) / 12,
+         "potential_savings": reclaim_result.get("total_annual_savings", 0),
+         "optimizations": reclaim_result.get("details", [])}
+    )
+    
+    return reclaim_result
+
+@app.post("/autonomous/auto-downgrade-licenses/{client_id}")
+async def autonomous_license_downgrade(client_id: str, background_tasks: BackgroundTasks):
+    """
+    Autonomously downgrade unused licenses with guardrails
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    # Analyze license usage
+    license_analysis = {
+        "monthly_savings": 0,
+        "potential_savings": 0,
+        "optimizations": []
+    }
+    
+    for license_type, license_data in client_data.get("licenses", {}).items():
+        unused = license_data["total"] - license_data["used"]
+        if unused > 0:
+            monthly_savings = unused * license_data["cost_per_license"]
+            license_analysis["monthly_savings"] += monthly_savings
+            license_analysis["potential_savings"] += monthly_savings * 12
+            license_analysis["optimizations"].append({
+                "license_type": license_type,
+                "unused_count": unused,
+                "monthly_waste": monthly_savings,
+                "action": "downgrade"
+            })
+    
+    # Execute autonomous downgrade
+    result = await autonomous_engine.auto_downgrade_unused_licenses(
+        client_id,
+        client_data,
+        license_analysis
+    )
+    
+    return result
+
+@app.post("/autonomous/draft-negotiation-email/{client_id}")
+async def draft_negotiation_email_endpoint(client_id: str):
+    """
+    Automatically draft negotiation email for unprofitable client
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    # Draft email
+    email = await autonomous_engine.draft_negotiation_email(
+        client_id,
+        client_data,
+        reason="unprofitable"
+    )
+    
+    return email
+
+@app.post("/autonomous/draft-upsell-proposal/{client_id}")
+async def draft_upsell_proposal_endpoint(client_id: str):
+    """
+    Automatically draft upsell proposal
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    # Get upsell opportunities first
+    opportunities = bedrock_agent.identify_upsell_opportunities(client_data)
+    
+    # Draft proposal
+    proposal = await autonomous_engine.draft_upsell_proposal(
+        client_id,
+        client_data,
+        opportunities
+    )
+    
+    return proposal
+
+@app.post("/autonomous/create-superops-quote/{client_id}")
+async def create_superops_quote_endpoint(client_id: str, service_details: Dict[str, Any]):
+    """
+    Automatically create quote in SuperOps
+    """
+    quote = await autonomous_engine.create_superops_quote(client_id, service_details)
+    return quote
+
+@app.get("/autonomous/pending-approvals")
+def get_pending_approvals():
+    """
+    Get all autonomous actions awaiting approval
+    """
+    return {
+        "pending_approvals": autonomous_engine.get_pending_approvals()
+    }
+
+@app.post("/autonomous/approve/{action_id}")
+def approve_autonomous_action(action_id: str):
+    """
+    Approve a pending autonomous action
+    """
+    result = autonomous_engine.approve_action(action_id)
+    return result
+
+@app.get("/autonomous/history")
+def get_autonomous_actions_history(limit: int = 50):
+    """
+    Get history of autonomous actions
+    """
+    return {
+        "actions": autonomous_engine.get_actions_history(limit)
+    }
+
+@app.post("/alerts/send-test-alert")
+async def send_test_alert():
+    """
+    Send test alert to Slack/Teams
+    """
+    test_client = MOCK_CLIENTS.get("client_x", {})
+    test_client["id"] = "client_x"
+    
+    result = await alerts_manager.send_unprofitable_client_alert(test_client)
+    return result
+
+@app.get("/alerts/recent")
+def get_recent_alerts(limit: int = 20):
+    """
+    Get recent alerts
+    """
+    return {
+        "alerts": alerts_manager.get_recent_alerts(limit)
+    }
+
+@app.get("/alerts/stats")
+def get_alert_stats():
+    """
+    Get alert statistics
+    """
+    return alerts_manager.get_alert_stats()
+
+@app.get("/vector-store/similar-clients")
+async def find_similar_clients(query: str, limit: int = 5):
+    """
+    Find similar clients using vector store RAG
+    """
+    results = await vector_store.query_similar_clients(query, limit)
+    return {"similar_clients": results}
+
+@app.get("/vector-store/analyze-patterns/{client_id}")
+async def analyze_client_patterns(client_id: str):
+    """
+    Analyze patterns using RAG from similar clients
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    patterns = await vector_store.analyze_client_patterns(client_data)
+    return patterns
+
+@app.get("/vector-store/best-practices/{client_id}")
+async def get_best_practices(client_id: str):
+    """
+    Get best practices from successful similar clients
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    best_practices = await vector_store.get_best_practices_for_client(client_data)
+    return best_practices
+
+@app.get("/vector-store/predict-churn/{client_id}")
+async def predict_churn_risk(client_id: str):
+    """
+    Predict churn risk using RAG and historical patterns
+    """
+    client_data = MOCK_CLIENTS.get(client_id)
+    if not client_data:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    client_data["id"] = client_id
+    
+    churn_analysis = await vector_store.predictive_churn_analysis(client_data)
+    return churn_analysis
+
+@app.get("/s3/client-history/{client_id}")
+async def get_client_history(client_id: str, days: int = 30):
+    """
+    Retrieve client historical data from S3
+    """
+    history = await s3_store.retrieve_client_history(client_id, days)
+    return history
+
+@app.get("/s3/financial-trend")
+async def get_financial_trend(days: int = 30):
+    """
+    Retrieve financial trend data from S3
+    """
+    trend = await s3_store.retrieve_financial_trend(days)
+    return {"trend_data": trend}
+
+@app.get("/s3/export-report/{client_id}")
+async def export_client_report(client_id: str):
+    """
+    Export comprehensive client report from S3 data
+    """
+    report = await s3_store.export_client_report(client_id)
+    return report
+
+@app.get("/system/stats")
+def get_system_stats():
+    """
+    Get overall system statistics
+    """
+    return {
+        "system_health": "operational",
+        "components": {
+            "bedrock_agent": {
+                "available": bedrock_agent.agent_available,
+                "status": "operational" if bedrock_agent.agent_available else "mock_mode"
+            },
+            "mcp_orchestrator": {
+                "agents": len(mcp_orchestrator.agents),
+                "tasks_completed": len([t for t in mcp_orchestrator.tasks.values() if t.status == "completed"])
+            },
+            "nova_act": {
+                "vendors_supported": len(nova_act.tracked_vendors),
+                "tracking_active": True
+            },
+            "autonomous_engine": {
+                "pending_approvals": len(autonomous_engine.get_pending_approvals()),
+                "actions_completed": len(autonomous_engine.actions_history)
+            },
+            "alerts_manager": {
+                "total_alerts": len(alerts_manager.alerts_history)
+            },
+            "vector_store": vector_store.get_storage_stats(),
+            "s3_store": s3_store.get_storage_stats()
+        },
+        "version": "2.0.0",
+        "features": {
+            "ai_reasoning": bedrock_agent.agent_available,
+            "multi_agent_coordination": True,
+            "browser_automation": True,
+            "autonomous_actions": True,
+            "real_time_alerts": True,
+            "rag_analytics": True,
+            "cloud_storage": True
+        }
+    }
 
 # Helper functions
 def get_profitability_recommendation(client_data):
