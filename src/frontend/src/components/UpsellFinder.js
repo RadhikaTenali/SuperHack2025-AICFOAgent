@@ -23,7 +23,7 @@ import {
 import {
   AttachMoney,
   Security,
-  CloudBackup,
+  CloudUpload,
   Assessment,
   TrendingUp,
   Send,
@@ -70,7 +70,7 @@ const UpsellFinder = () => {
       return <Security color="error" />;
     }
     if (service.toLowerCase().includes('backup') || service.toLowerCase().includes('recovery')) {
-      return <CloudBackup color="primary" />;
+      return <CloudUpload color="primary" />;
     }
     if (service.toLowerCase().includes('compliance') || service.toLowerCase().includes('hipaa')) {
       return <Assessment color="warning" />;
