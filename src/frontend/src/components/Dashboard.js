@@ -3,9 +3,6 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
-  Card,
-  CardContent,
   AppBar,
   Toolbar,
   Tabs,
@@ -19,9 +16,14 @@ import {
   AttachMoney,
   Assessment,
   Security,
-  CloudQueue
+  CloudQueue,
+  Nature,         // For Sustainability
+  EmojiEvents,    // For Performance
+  Psychology      // For Scenario
 } from '@mui/icons-material';
 import axios from 'axios';
+
+// Import all components
 import OverviewCards from './OverviewCards';
 import ProfitabilityDashboard from './ProfitabilityDashboard';
 import LicenseOptimizer from './LicenseOptimizer';
@@ -29,6 +31,8 @@ import UpsellFinder from './UpsellFinder';
 import ScenarioSimulation from './ScenarioSimulation';
 import AnomalyDetection from './AnomalyDetection';
 import WeeklyReport from './WeeklyReport';
+import SustainabilityInsights from './SustainabilityInsights';  // NEW
+import PerformanceScoreboard from './PerformanceScoreboard';    // NEW
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -57,14 +61,17 @@ const Dashboard = () => {
     setActiveTab(newValue);
   };
 
+  // Updated tabs array with ALL 9 tabs
   const tabs = [
     { label: 'Overview', icon: <Assessment /> },
     { label: 'Profitability', icon: <TrendingUp /> },
     { label: 'License Optimizer', icon: <CloudQueue /> },
     { label: 'Upsell Finder', icon: <AttachMoney /> },
-    { label: 'Scenario Simulation', icon: <Assessment /> },
+    { label: 'Scenario Simulation', icon: <Psychology /> },
     { label: 'Anomaly Detection', icon: <Warning /> },
-    { label: 'Weekly Report', icon: <Assessment /> }
+    { label: 'Weekly Report', icon: <Assessment /> },
+    { label: 'Sustainability', icon: <Nature /> },        // NEW
+    { label: 'Performance', icon: <EmojiEvents /> }       // NEW
   ];
 
   const renderTabContent = () => {
@@ -83,6 +90,10 @@ const Dashboard = () => {
         return <AnomalyDetection />;
       case 6:
         return <WeeklyReport />;
+      case 7:
+        return <SustainabilityInsights />;    // NEW
+      case 8:
+        return <PerformanceScoreboard />;     // NEW
       default:
         return <OverviewCards overview={overview} />;
     }
