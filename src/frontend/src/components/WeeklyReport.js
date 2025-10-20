@@ -19,6 +19,7 @@ import {
   Assessment,
   Email,
   Download,
+  CheckCircle,
   Warning as WarningIcon,
   TrendingUp,
   AttachMoney,

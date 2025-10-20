@@ -7,39 +7,76 @@ import {
   Box,
   LinearProgress,
   Alert,
-  Button,
-  Chip,
   Avatar,
-  List,
-  ListItem,
-  ListItemText,
+  Chip,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  Divider
+  Paper
 } from '@mui/material';
 import {
   EmojiEvents,
   TrendingUp,
   TrendingDown,
   Speed,
-  Timeline,
-  AttachMoney,
-  Schedule,
-  Security,
-  Star
+  Timeline
 } from '@mui/icons-material';
 import axios from 'axios';
 
 const PerformanceScoreboard = () => {
-  const [scoreboard, setScoreboard] = useState(null);
-  const [selectedClient, setSelectedClient] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [scoreboard, setScoreboard] = useState({
+    portfolio_summary: {
+      total_clients: 3,
+      average_score: 72.5,
+      rankings_distribution: { Platinum: 1, Gold: 1, Silver: 1, Bronze: 0 },
+      portfolio_health: "Good",
+      top_performer: "HealthFirst Medical"
+    },
+    performance_trends: {
+      overall_trend: "improving",
+      trend_percentage: 8.5,
+      key_improvements: ["Customer satisfaction up 12%", "Resolution time down 15%"],
+      areas_of_concern: ["Security incidents increased", "License utilization plateaued"]
+    },
+    scoreboard: [
+      { 
+        client_id: "client_z",
+        name: "HealthFirst Medical", 
+        overall_score: 85, 
+        ranking: "Platinum", 
+        position: 1,
+        key_strengths: ["Customer Satisfaction", "Security"],
+        trend: "improving"
+      },
+      { 
+        client_id: "client_y",
+        name: "RetailMax Inc", 
+        overall_score: 72, 
+        ranking: "Gold", 
+        position: 2,
+        key_strengths: ["Efficiency"],
+        trend: "stable"
+      },
+      { 
+        client_id: "client_x",
+        name: "TechCorp Solutions", 
+        overall_score: 61, 
+        ranking: "Silver", 
+        position: 3,
+        key_strengths: ["Operational"],
+        trend: "declining"
+      }
+    ],
+    recommendations: [
+      "Focus on improving bottom 40% of clients through targeted service optimization",
+      "Leverage best practices from HealthFirst Medical across other clients",
+      "Implement automated monitoring to improve resolution times"
+    ]
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchScoreboardData();
@@ -47,111 +84,16 @@ const PerformanceScoreboard = () => {
 
   const fetchScoreboardData = async () => {
     try {
+      setLoading(true);
       const response = await axios.get('http://localhost:8000/performance/scoreboard');
-      setScoreboard(response.data);
-      setError(null);
+      if (response.data && response.data.portfolio_summary) {
+        setScoreboard(response.data);
+      }
     } catch (error) {
       console.error('Error fetching scoreboard data:', error);
-      // Mock data for demo
-      setScoreboard({
-        portfolio_summary: {
-          total_clients: 3,
-          average_score: 72.5,
-          rankings_distribution: { Platinum: 1, Gold: 1, Silver: 1, Bronze: 0 },
-          portfolio_health: "Good",
-          top_performer: "HealthFirst Medical"
-        },
-        performance_trends: {
-          overall_trend: "improving",
-          trend_percentage: 8.5,
-          key_improvements: ["Customer satisfaction up 12%", "Resolution time down 15%"],
-          areas_of_concern: ["Security incidents increased", "License utilization plateaued"]
-        },
-        scoreboard: [
-          { 
-            client_id: "client_z",
-            name: "HealthFirst Medical", 
-            overall_score: 85, 
-            ranking: "Platinum", 
-            position: 1,
-            key_strengths: ["Customer Satisfaction", "Security"],
-            improvement_areas: [],
-            trend: "improving"
-          },
-          { 
-            client_id: "client_y",
-            name: "RetailMax Inc", 
-            overall_score: 72, 
-            ranking: "Gold", 
-            position: 2,
-            key_strengths: ["Efficiency"],
-            improvement_areas: ["Financial"],
-            trend: "stable"
-          },
-          { 
-            client_id: "client_x",
-            name: "TechCorp Solutions", 
-            overall_score: 61, 
-            ranking: "Silver", 
-            position: 3,
-            key_strengths: [],
-            improvement_areas: ["Financial", "Operational"],
-            trend: "declining"
-          }
-        ],
-        recommendations: [
-          "Focus on improving bottom 40% of clients through targeted service optimization",
-          "Leverage best practices from HealthFirst Medical across other clients",
-          "Implement automated monitoring to improve resolution times"
-        ]
-      });
+      // Keep the mock data we initialized with
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchClientDetail = async (clientId) => {
-    try {
-      const response = await axios.get(`http://localhost:8000/performance/client/${clientId}`);
-      setSelectedClient(response.data);
-    } catch (error) {
-      console.error('Error fetching client detail:', error);
-      // Mock client detail data
-      setSelectedClient({
-        client_info: {
-          name: "Mock Client",
-          contract_value: 50000
-        },
-        performance_metrics: {
-          financial: {
-            monthly_revenue: 5000,
-            monthly_margin: 1000,
-            margin_percentage: 20
-          },
-          operational: {
-            avg_resolution_time: 8.5,
-            uptime_percentage: 99.2,
-            automation_score: 75
-          },
-          quality: {
-            customer_satisfaction: 4.2,
-            security_score: 85,
-            license_utilization: 88
-          }
-        },
-        score_breakdown: {
-          overall_score: 75,
-          score_breakdown: {
-            financial: 80,
-            operational: 75,
-            satisfaction: 85,
-            security: 70,
-            efficiency: 65
-          }
-        },
-        achievements: ["High Availability Champion", "Customer Excellence Award"],
-        improvement_plan: []
-      });
     }
   };
 
@@ -198,14 +140,6 @@ const PerformanceScoreboard = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mt: 2 }}>
-        {error}
-      </Alert>
-    );
-  }
-
   return (
     <Grid container spacing={3}>
       {/* Header */}
@@ -230,115 +164,112 @@ const PerformanceScoreboard = () => {
       </Grid>
 
       {/* Portfolio Summary */}
-      {scoreboard && (
-        <>
-          <Grid item xs={12} md={8}>
-            <Card elevation={3}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Portfolio Performance Summary
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6} md={3}>
-                    <Box textAlign="center" p={2}>
-                      <Typography variant="h4" color="primary.main">
-                        {scoreboard.portfolio_summary.total_clients}
-                      </Typography>
-                      <Typography variant="caption">Total Clients</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Box textAlign="center" p={2}>
-                      <Typography variant="h4" color="success.main">
-                        {scoreboard.portfolio_summary.average_score}
-                      </Typography>
-                      <Typography variant="caption">Avg Score</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Box textAlign="center" p={2}>
-                      <Typography variant="h4" color="warning.main">
-                        {scoreboard.portfolio_summary.rankings_distribution.Platinum}
-                      </Typography>
-                      <Typography variant="caption">Platinum Clients</Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Box textAlign="center" p={2}>
-                      <Typography variant="h4" color="info.main">
-                        {scoreboard.portfolio_summary.rankings_distribution.Gold}
-                      </Typography>
-                      <Typography variant="caption">Gold Clients</Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-
-                <Box mt={2}>
-                  <Alert 
-                    severity={
-                      scoreboard.portfolio_summary.portfolio_health === 'Excellent' ? 'success' :
-                      scoreboard.portfolio_summary.portfolio_health === 'Good' ? 'info' : 'warning'
-                    }
-                    icon={<Speed />}
-                  >
-                    <strong>Portfolio Health: {scoreboard.portfolio_summary.portfolio_health}</strong>
-                    <br />
-                    Top Performer: {scoreboard.portfolio_summary.top_performer}
-                  </Alert>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Card elevation={3}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Performance Trends
-                </Typography>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  {getTrendIcon(scoreboard.performance_trends.overall_trend)}
-                  <Typography variant="body1" color="success.main">
-                    Portfolio {scoreboard.performance_trends.overall_trend}
+      <Grid item xs={12} md={8}>
+        <Card elevation={3}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Portfolio Performance Summary
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6} md={3}>
+                <Box textAlign="center" p={2}>
+                  <Typography variant="h4" color="primary.main">
+                    {scoreboard.portfolio_summary.total_clients}
                   </Typography>
+                  <Typography variant="caption">Total Clients</Typography>
                 </Box>
-                <Typography variant="h4" color="success.main" gutterBottom>
-                  +{scoreboard.performance_trends.trend_percentage}%
-                </Typography>
-                <Typography variant="body2" color="textSecondary" gutterBottom>
-                  vs previous quarter
-                </Typography>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Box textAlign="center" p={2}>
+                  <Typography variant="h4" color="success.main">
+                    {scoreboard.portfolio_summary.average_score}
+                  </Typography>
+                  <Typography variant="caption">Avg Score</Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Box textAlign="center" p={2}>
+                  <Typography variant="h4" color="warning.main">
+                    {scoreboard.portfolio_summary.rankings_distribution.Platinum}
+                  </Typography>
+                  <Typography variant="caption">Platinum Clients</Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={3}>
+                <Box textAlign="center" p={2}>
+                  <Typography variant="h4" color="info.main">
+                    {scoreboard.portfolio_summary.rankings_distribution.Gold}
+                  </Typography>
+                  <Typography variant="caption">Gold Clients</Typography>
+                </Box>
+              </Grid>
+            </Grid>
 
-                <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-                  Key Improvements
-                </Typography>
-                {scoreboard.performance_trends.key_improvements.map((improvement, index) => (
-                  <Chip
-                    key={index}
-                    label={improvement}
-                    color="success"
-                    size="small"
-                    sx={{ mr: 1, mb: 1 }}
-                  />
-                ))}
+            <Box mt={2}>
+              <Alert 
+                severity={
+                  scoreboard.portfolio_summary.portfolio_health === 'Excellent' ? 'success' :
+                  scoreboard.portfolio_summary.portfolio_health === 'Good' ? 'info' : 'warning'
+                }
+                icon={<Speed />}
+              >
+                <strong>Portfolio Health: {scoreboard.portfolio_summary.portfolio_health}</strong>
+                <br />
+                Top Performer: {scoreboard.portfolio_summary.top_performer}
+              </Alert>
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
 
-                <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
-                  Areas of Concern
-                </Typography>
-                {scoreboard.performance_trends.areas_of_concern.map((concern, index) => (
-                  <Chip
-                    key={index}
-                    label={concern}
-                    color="warning"
-                    size="small"
-                    sx={{ mr: 1, mb: 1 }}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-          </Grid>
-        </>
-      )}
+      {/* Performance Trends */}
+      <Grid item xs={12} md={4}>
+        <Card elevation={3}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Performance Trends
+            </Typography>
+            <Box display="flex" alignItems="center" gap={1} mb={2}>
+              {getTrendIcon(scoreboard.performance_trends.overall_trend)}
+              <Typography variant="body1" color="success.main">
+                Portfolio {scoreboard.performance_trends.overall_trend}
+              </Typography>
+            </Box>
+            <Typography variant="h4" color="success.main" gutterBottom>
+              +{scoreboard.performance_trends.trend_percentage}%
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              vs previous quarter
+            </Typography>
+
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+              Key Improvements
+            </Typography>
+            {scoreboard.performance_trends.key_improvements.map((improvement, index) => (
+              <Chip
+                key={index}
+                label={improvement}
+                color="success"
+                size="small"
+                sx={{ mr: 1, mb: 1 }}
+              />
+            ))}
+
+            <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+              Areas of Concern
+            </Typography>
+            {scoreboard.performance_trends.areas_of_concern.map((concern, index) => (
+              <Chip
+                key={index}
+                label={concern}
+                color="warning"
+                size="small"
+                sx={{ mr: 1, mb: 1 }}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      </Grid>
 
       {/* Performance Rankings */}
       <Grid item xs={12}>
@@ -357,11 +288,10 @@ const PerformanceScoreboard = () => {
                     <TableCell><strong>Ranking</strong></TableCell>
                     <TableCell><strong>Strengths</strong></TableCell>
                     <TableCell><strong>Trend</strong></TableCell>
-                    <TableCell><strong>Actions</strong></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {scoreboard?.scoreboard.map((client) => (
+                  {scoreboard.scoreboard.map((client) => (
                     <TableRow key={client.client_id}>
                       <TableCell>
                         <Avatar 
@@ -430,15 +360,6 @@ const PerformanceScoreboard = () => {
                       <TableCell>
                         {getTrendIcon(client.trend)}
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => fetchClientDetail(client.client_id)}
-                        >
-                          View Details
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -448,163 +369,31 @@ const PerformanceScoreboard = () => {
         </Card>
       </Grid>
 
-      {/* Client Detail */}
-      {selectedClient && (
-        <Grid item xs={12}>
-          <Card elevation={3}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                {selectedClient.client_info.name} - Detailed Performance Analysis
-              </Typography>
-              
-              <Grid container spacing={3}>
-                {/* Performance Metrics */}
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    💰 Financial Performance
-                  </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Monthly Revenue" 
-                        secondary={`$${selectedClient.performance_metrics.financial.monthly_revenue.toLocaleString()}`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Monthly Margin" 
-                        secondary={`$${selectedClient.performance_metrics.financial.monthly_margin.toLocaleString()}`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Margin %" 
-                        secondary={`${selectedClient.performance_metrics.financial.margin_percentage}%`}
-                      />
-                    </ListItem>
-                  </List>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    ⚙️ Operational Excellence
-                  </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Avg Resolution Time" 
-                        secondary={`${selectedClient.performance_metrics.operational.avg_resolution_time}h`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Uptime" 
-                        secondary={`${selectedClient.performance_metrics.operational.uptime_percentage}%`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Automation Score" 
-                        secondary={`${selectedClient.performance_metrics.operational.automation_score}/100`}
-                      />
-                    </ListItem>
-                  </List>
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    ⭐ Quality Metrics
-                  </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Customer Satisfaction" 
-                        secondary={`${selectedClient.performance_metrics.quality.customer_satisfaction}/5.0`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="Security Score" 
-                        secondary={`${selectedClient.performance_metrics.quality.security_score}/100`}
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText 
-                        primary="License Utilization" 
-                        secondary={`${selectedClient.performance_metrics.quality.license_utilization}%`}
-                      />
-                    </ListItem>
-                  </List>
-                </Grid>
-              </Grid>
-
-              <Divider sx={{ my: 2 }} />
-
-              {/* Score Breakdown */}
-              <Typography variant="subtitle1" gutterBottom>
-                📊 Performance Score Breakdown
-              </Typography>
-              <Grid container spacing={2}>
-                {Object.entries(selectedClient.score_breakdown.score_breakdown).map(([category, score]) => (
-                  <Grid item xs={12} md={2.4} key={category}>
-                    <Box textAlign="center" p={1}>
-                      <Typography variant="caption" gutterBottom>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </Typography>
-                      <LinearProgress
-                        variant="determinate"
-                        value={score}
-                        color={getScoreColor(score)}
-                        sx={{ height: 8, borderRadius: 4, mb: 1 }}
-                      />
-                      <Typography variant="h6" color={getScoreColor(score) + '.main'}>
-                        {score}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-
-              {/* Achievements */}
-              {selectedClient.achievements && selectedClient.achievements.length > 0 && (
-                <Box mt={2}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    🏆 Achievements
-                  </Typography>
-                  <Box display="flex" flexWrap="wrap" gap={1}>
-                    {selectedClient.achievements.map((achievement, index) => (
-                      <Chip
-                        key={index}
-                        label={achievement}
-                        color="success"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      )}
-
       {/* Portfolio Recommendations */}
-      {scoreboard?.recommendations && (
-        <Grid item xs={12}>
-          <Card elevation={3}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                💡 Portfolio Recommendations
-              </Typography>
-              {scoreboard.recommendations.map((recommendation, index) => (
-                <Alert key={index} severity="info" sx={{ mb: 1 }}>
-                  {recommendation}
-                </Alert>
-              ))}
-            </CardContent>
-          </Card>
-        </Grid>
-      )}
+      <Grid item xs={12}>
+        <Card elevation={3}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              💡 Portfolio Recommendations
+            </Typography>
+            {scoreboard.recommendations.map((recommendation, index) => (
+              <Alert key={index} severity="info" sx={{ mb: 1 }}>
+                {recommendation}
+              </Alert>
+            ))}
+          </CardContent>
+        </Card>
+      </Grid>
+
+      {/* Demo Message */}
+      <Grid item xs={12}>
+        <Alert severity="info">
+          <Typography variant="body2">
+            <strong>🏆 Performance Demo:</strong> This module tracks MSP performance metrics, 
+            client rankings, and industry benchmarks. The data shown is simulated for demonstration purposes.
+          </Typography>
+        </Alert>
+      </Grid>
     </Grid>
   );
 };
