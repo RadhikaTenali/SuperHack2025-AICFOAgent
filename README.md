@@ -250,13 +250,9 @@ This project is developed for SuperHack 2025. All intellectual property remains 
 
 ## 📚 Documentation
 
-- **[Quick Start Guide](QUICK_START.md)** - Get running in 5 minutes
-- **[API Reference](docs/API_REFERENCE.md)** - Complete endpoint documentation
-- **[New Features](docs/NEW_FEATURES.md)** - v2.0 feature breakdown
-- **[Implementation Summary](IMPLEMENTATION_COMPLETE.md)** - Development overview
-- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment
-- **[Demo Guide](docs/DEMO_GUIDE.md)** - Live demonstration scenarios
+- **[Complete Implementation Guide](AI_CFO_AGENT_COMPLETE_GUIDE.md)** - Comprehensive documentation covering all features, setup, and usage
 - **Interactive API Docs** - http://localhost:8000/docs (when running)
+- **WebSocket Testing** - ws://localhost:8000/ws for real-time updates
 
 ## 🤝 Contributing
 

@@ -4,10 +4,12 @@ Real-time notifications for critical financial events
 """
 import logging
 import json
+import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from enum import Enum
 import requests
+import aiohttp
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -243,34 +245,94 @@ class AlertsManager:
         # Format message based on alert type
         message = self._format_slack_message(alert)
         
-        # In production, send to actual Slack webhook
-        # For demo, simulate the API call
-        logger.info(f"📤 Sending to Slack: {alert['type']}")
+        # Get Slack webhook URL from environment
+        slack_webhook = os.getenv('SLACK_WEBHOOK_URL')
         
-        # Simulated Slack response
-        return {
-            "success": True,
-            "channel": "slack",
-            "message_id": f"slack_{datetime.now().timestamp()}",
-            "timestamp": datetime.now().isoformat()
-        }
+        if not slack_webhook:
+            logger.warning("Slack webhook URL not configured, simulating alert")
+            return {
+                "success": True,
+                "channel": "slack",
+                "message_id": f"slack_{datetime.now().timestamp()}",
+                "timestamp": datetime.now().isoformat(),
+                "simulated": True
+            }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(slack_webhook, json=message) as response:
+                    if response.status == 200:
+                        logger.info(f"✅ Slack alert sent successfully: {alert['type']}")
+                        return {
+                            "success": True,
+                            "channel": "slack",
+                            "message_id": f"slack_{datetime.now().timestamp()}",
+                            "timestamp": datetime.now().isoformat(),
+                            "response_status": response.status
+                        }
+                    else:
+                        logger.error(f"Slack API error: {response.status}")
+                        return {
+                            "success": False,
+                            "channel": "slack",
+                            "error": f"HTTP {response.status}",
+                            "timestamp": datetime.now().isoformat()
+                        }
+        except Exception as e:
+            logger.error(f"Error sending Slack alert: {e}")
+            return {
+                "success": False,
+                "channel": "slack",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
     
     async def _send_teams_alert(self, alert: Dict[str, Any]) -> Dict[str, Any]:
         """Send alert to Microsoft Teams"""
         # Format message based on alert type
         message = self._format_teams_message(alert)
         
-        # In production, send to actual Teams webhook
-        # For demo, simulate the API call
-        logger.info(f"📤 Sending to Teams: {alert['type']}")
+        # Get Teams webhook URL from environment
+        teams_webhook = os.getenv('TEAMS_WEBHOOK_URL')
         
-        # Simulated Teams response
-        return {
-            "success": True,
-            "channel": "teams",
-            "message_id": f"teams_{datetime.now().timestamp()}",
-            "timestamp": datetime.now().isoformat()
-        }
+        if not teams_webhook:
+            logger.warning("Teams webhook URL not configured, simulating alert")
+            return {
+                "success": True,
+                "channel": "teams",
+                "message_id": f"teams_{datetime.now().timestamp()}",
+                "timestamp": datetime.now().isoformat(),
+                "simulated": True
+            }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(teams_webhook, json=message) as response:
+                    if response.status == 200:
+                        logger.info(f"✅ Teams alert sent successfully: {alert['type']}")
+                        return {
+                            "success": True,
+                            "channel": "teams",
+                            "message_id": f"teams_{datetime.now().timestamp()}",
+                            "timestamp": datetime.now().isoformat(),
+                            "response_status": response.status
+                        }
+                    else:
+                        logger.error(f"Teams API error: {response.status}")
+                        return {
+                            "success": False,
+                            "channel": "teams",
+                            "error": f"HTTP {response.status}",
+                            "timestamp": datetime.now().isoformat()
+                        }
+        except Exception as e:
+            logger.error(f"Error sending Teams alert: {e}")
+            return {
+                "success": False,
+                "channel": "teams",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
     
     def _format_slack_message(self, alert: Dict[str, Any]) -> Dict[str, Any]:
         """Format alert for Slack"""
