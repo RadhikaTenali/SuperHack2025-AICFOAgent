@@ -98,7 +98,8 @@ const LicenseOptimizer = () => {
   const totalUnusedLicenses = optimizations.reduce((sum, opt) => sum + opt.unused_licenses, 0);
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Summary Cards */}
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
@@ -289,7 +290,8 @@ const LicenseOptimizer = () => {
           </Typography>
         </Alert>
       </Grid>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 

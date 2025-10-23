@@ -3,15 +3,14 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
-  Card,
-  CardContent,
   AppBar,
   Toolbar,
   Tabs,
   Tab,
   Alert,
-  Chip
+  Chip,
+  Grid,
+  Paper
 } from '@mui/material';
 import {
   TrendingUp,
@@ -36,6 +35,12 @@ import AnomalyDetection from './AnomalyDetection';
 import WeeklyReport from './WeeklyReport';
 import SustainabilityInsights from './SustainabilityInsights';  // NEW
 import PerformanceScoreboard from './PerformanceScoreboard';    // NEW
+import ClientManagement from './ClientManagement';              // NEW
+import ServiceConfiguration from './ServiceConfiguration';      // NEW
+import BudgetPlanning from './BudgetPlanning';                  // NEW
+import AlertSettings from './AlertSettings';                    // NEW
+import GoalSetting from './GoalSetting';                        // NEW
+import UserPreferences from './UserPreferences';                // NEW
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -64,7 +69,7 @@ const Dashboard = () => {
     setActiveTab(newValue);
   };
 
-  // Updated tabs array with ALL 9 tabs
+  // Updated tabs array with ALL 15 tabs
   const tabs = [
     { label: 'Overview', icon: <Assessment /> },
     { label: 'Profitability', icon: <TrendingUp /> },
@@ -74,7 +79,13 @@ const Dashboard = () => {
     { label: 'Anomaly Detection', icon: <Warning /> },
     { label: 'Weekly Report', icon: <Assessment /> },
     { label: 'Sustainability', icon: <Nature /> },        // NEW
-    { label: 'Performance', icon: <EmojiEvents /> }       // NEW
+    { label: 'Performance', icon: <EmojiEvents /> },     // NEW
+    { label: 'Client Management', icon: <Security /> },  // NEW
+    { label: 'Service Config', icon: <CloudQueue /> },   // NEW
+    { label: 'Budget Planning', icon: <AttachMoney /> }, // NEW
+    { label: 'Alert Settings', icon: <Warning /> },      // NEW
+    { label: 'Goal Setting', icon: <TrendingUp /> },     // NEW
+    { label: 'Preferences', icon: <Security /> }         // NEW
   ];
 
   const renderTabContent = () => {
@@ -97,6 +108,18 @@ const Dashboard = () => {
         return <SustainabilityInsights />;    // NEW
       case 8:
         return <PerformanceScoreboard />;     // NEW
+      case 9:
+        return <ClientManagement />;          // NEW
+      case 10:
+        return <ServiceConfiguration />;      // NEW
+      case 11:
+        return <BudgetPlanning />;            // NEW
+      case 12:
+        return <AlertSettings />;             // NEW
+      case 13:
+        return <GoalSetting />;               // NEW
+      case 14:
+        return <UserPreferences />;           // NEW
       default:
         return <OverviewCards overview={overview} />;
     }
@@ -134,13 +157,39 @@ const Dashboard = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+      <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)' }}>
+        {/* Side Panel - Fixed Width */}
+        <Box sx={{ 
+          width: 280, 
+          minWidth: 280,
+          maxWidth: 280,
+          borderRight: 1, 
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          overflow: 'auto'
+        }}>
           <Tabs
+            orientation="vertical"
             value={activeTab}
             onChange={handleTabChange}
             variant="scrollable"
             scrollButtons="auto"
+            sx={{
+              '& .MuiTab-root': {
+                minHeight: 48,
+                justifyContent: 'flex-start',
+                textAlign: 'left',
+                padding: '8px 16px',
+                fontSize: '0.875rem',
+                minWidth: 'auto',
+                width: '100%'
+              },
+              '& .MuiTabs-indicator': {
+                left: 0,
+                right: 'auto',
+                width: 3
+              }
+            }}
           >
             {tabs.map((tab, index) => (
               <Tab
@@ -148,13 +197,27 @@ const Dashboard = () => {
                 icon={tab.icon}
                 label={tab.label}
                 iconPosition="start"
+                sx={{
+                  minHeight: 48,
+                  '& .MuiTab-iconWrapper': {
+                    marginRight: 1,
+                    fontSize: '1.1rem'
+                  }
+                }}
               />
             ))}
           </Tabs>
         </Box>
 
-        {renderTabContent()}
-      </Container>
+        {/* Main Content Area */}
+        <Box sx={{ 
+          flexGrow: 1, 
+          overflow: 'auto',
+          p: 3
+        }}>
+          {renderTabContent()}
+        </Box>
+      </Box>
     </Box>
   );
 };

@@ -332,7 +332,8 @@ const ScenarioSimulation = () => {
   };
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Simulation Setup */}
       <Grid item xs={12}>
         <Card elevation={3}>
@@ -438,7 +439,8 @@ const ScenarioSimulation = () => {
           </Typography>
         </Alert>
       </Grid>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 

@@ -74,7 +74,8 @@ const SustainabilityInsights = () => {
   }
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Header */}
       <Grid item xs={12}>
         <Card elevation={3}>
@@ -294,7 +295,8 @@ const SustainabilityInsights = () => {
           </Typography>
         </Alert>
       </Grid>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 

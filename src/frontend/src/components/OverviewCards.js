@@ -45,7 +45,8 @@ const OverviewCards = ({ overview }) => {
   };
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Revenue Card */}
       <Grid item xs={12} sm={6} md={3}>
         <Card elevation={3}>
@@ -193,7 +194,8 @@ const OverviewCards = ({ overview }) => {
           </CardContent>
         </Card>
       </Grid>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 

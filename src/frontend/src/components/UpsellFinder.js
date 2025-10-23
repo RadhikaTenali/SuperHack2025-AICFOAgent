@@ -139,7 +139,8 @@ Your MSP Team`;
   );
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Summary Cards */}
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
@@ -330,7 +331,8 @@ Your MSP Team`;
           </Button>
         </DialogActions>
       </Dialog>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 

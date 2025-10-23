@@ -110,7 +110,8 @@ const ProfitabilityDashboard = () => {
   const totalMargin = clients.reduce((sum, c) => sum + c.margin, 0);
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Summary Cards */}
       <Grid item xs={12} md={4}>
         <Card elevation={3}>
@@ -247,7 +248,8 @@ const ProfitabilityDashboard = () => {
           </CardContent>
         </Card>
       </Grid>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 

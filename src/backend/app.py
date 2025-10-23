@@ -782,6 +782,394 @@ def get_system_stats():
         }
     }
 
+# ============================================================================
+# CLIENT MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.get("/clients")
+def get_all_clients():
+    """Get all clients"""
+    clients = []
+    for client_id, data in MOCK_CLIENTS.items():
+        clients.append({
+            "id": client_id,
+            "name": data["name"],
+            "email": f"{data['name'].lower().replace(' ', '.')}@company.com",
+            "phone": "+1-555-0123",
+            "company": data["name"],
+            "monthly_revenue": data["monthly_revenue"],
+            "monthly_cost": data["monthly_cost"],
+            "contract_value": data["contract_value"],
+            "services": data["services"],
+            "industry": "Technology",
+            "contract_start": "2024-01-01",
+            "contract_end": "2024-12-31",
+            "billing_cycle": "monthly",
+            "payment_terms": "net_30",
+            "status": "active",
+            "margin": data["margin"]
+        })
+    return {"clients": clients}
+
+@app.post("/clients")
+def create_client(client_data: dict):
+    """Create a new client"""
+    client_id = f"client_{len(MOCK_CLIENTS) + 1}"
+    MOCK_CLIENTS[client_id] = {
+        "name": client_data["name"],
+        "monthly_revenue": client_data["monthly_revenue"],
+        "monthly_cost": client_data["monthly_cost"],
+        "contract_value": client_data["contract_value"],
+        "services": client_data["services"],
+        "margin": client_data["margin"]
+    }
+    return {"success": True, "client_id": client_id}
+
+@app.put("/clients/{client_id}")
+def update_client(client_id: str, client_data: dict):
+    """Update an existing client"""
+    if client_id in MOCK_CLIENTS:
+        MOCK_CLIENTS[client_id].update(client_data)
+        return {"success": True}
+    return {"success": False, "error": "Client not found"}
+
+@app.delete("/clients/{client_id}")
+def delete_client(client_id: str):
+    """Delete a client"""
+    if client_id in MOCK_CLIENTS:
+        del MOCK_CLIENTS[client_id]
+        return {"success": True}
+    return {"success": False, "error": "Client not found"}
+
+# ============================================================================
+# SERVICE CONFIGURATION ENDPOINTS
+# ============================================================================
+
+@app.get("/services")
+def get_all_services():
+    """Get all services"""
+    services = [
+        {
+            "id": "service_1",
+            "name": "IT Support",
+            "description": "Comprehensive IT support services",
+            "category": "IT Support",
+            "base_price": 1500,
+            "pricing_model": "per_user",
+            "billing_frequency": "monthly",
+            "is_active": True,
+            "features": ["24/7 Support", "Remote Monitoring"],
+            "requirements": ["Windows Environment", "Network Access"],
+            "sla_hours": 4,
+            "setup_fee": 500,
+            "minimum_contract_months": 12,
+            "auto_renewal": True,
+            "tier": "standard"
+        },
+        {
+            "id": "service_2",
+            "name": "Cloud Management",
+            "description": "Cloud infrastructure management",
+            "category": "Cloud Services",
+            "base_price": 2000,
+            "pricing_model": "fixed",
+            "billing_frequency": "monthly",
+            "is_active": True,
+            "features": ["Cloud Monitoring", "Backup Services"],
+            "requirements": ["Cloud Infrastructure", "Admin Credentials"],
+            "sla_hours": 2,
+            "setup_fee": 1000,
+            "minimum_contract_months": 6,
+            "auto_renewal": True,
+            "tier": "premium"
+        }
+    ]
+    return {"services": services}
+
+@app.post("/services")
+def create_service(service_data: dict):
+    """Create a new service"""
+    service_id = f"service_{len(service_data) + 1}"
+    return {"success": True, "service_id": service_id}
+
+@app.put("/services/{service_id}")
+def update_service(service_id: str, service_data: dict):
+    """Update an existing service"""
+    return {"success": True}
+
+@app.delete("/services/{service_id}")
+def delete_service(service_id: str):
+    """Delete a service"""
+    return {"success": True}
+
+# ============================================================================
+# BUDGET PLANNING ENDPOINTS
+# ============================================================================
+
+@app.get("/budgets")
+def get_all_budgets():
+    """Get all budgets"""
+    budgets = [
+        {
+            "id": "budget_1",
+            "name": "Q1 Revenue Target",
+            "category": "Revenue",
+            "target_amount": 50000,
+            "current_amount": 35000,
+            "start_date": "2024-01-01",
+            "end_date": "2024-03-31",
+            "priority": "high",
+            "status": "active",
+            "description": "First quarter revenue target",
+            "alert_threshold": 80,
+            "auto_adjust": False
+        },
+        {
+            "id": "budget_2",
+            "name": "Software Licenses",
+            "category": "Software Licenses",
+            "target_amount": 12000,
+            "current_amount": 8500,
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "priority": "medium",
+            "status": "active",
+            "description": "Annual software license budget",
+            "alert_threshold": 90,
+            "auto_adjust": True
+        }
+    ]
+    return {"budgets": budgets}
+
+@app.get("/budgets/overview")
+def get_budget_overview():
+    """Get budget overview statistics"""
+    return {
+        "total_budget": 100000,
+        "total_spent": 65000,
+        "remaining": 35000,
+        "over_budget_count": 1
+    }
+
+@app.post("/budgets")
+def create_budget(budget_data: dict):
+    """Create a new budget"""
+    budget_id = f"budget_{len(budget_data) + 1}"
+    return {"success": True, "budget_id": budget_id}
+
+@app.put("/budgets/{budget_id}")
+def update_budget(budget_id: str, budget_data: dict):
+    """Update an existing budget"""
+    return {"success": True}
+
+@app.delete("/budgets/{budget_id}")
+def delete_budget(budget_id: str):
+    """Delete a budget"""
+    return {"success": True}
+
+# ============================================================================
+# ALERT SETTINGS ENDPOINTS
+# ============================================================================
+
+@app.get("/alerts/settings")
+def get_alert_settings():
+    """Get all alert settings"""
+    alerts = [
+        {
+            "id": "alert_1",
+            "name": "Low Margin Alert",
+            "description": "Alert when client margin falls below threshold",
+            "alert_type": "financial",
+            "condition": "margin_below",
+            "threshold_value": 500,
+            "comparison_operator": "less_than",
+            "notification_channels": ["email", "dashboard"],
+            "is_active": True,
+            "priority": "high",
+            "frequency": "immediate",
+            "escalation_enabled": True,
+            "escalation_delay_minutes": 30,
+            "recipients": ["admin@company.com"],
+            "custom_message": "Client margin is below acceptable threshold"
+        },
+        {
+            "id": "alert_2",
+            "name": "License Utilization Alert",
+            "description": "Alert when license utilization is low",
+            "alert_type": "license",
+            "condition": "license_utilization_low",
+            "threshold_value": 60,
+            "comparison_operator": "less_than",
+            "notification_channels": ["email", "slack"],
+            "is_active": True,
+            "priority": "medium",
+            "frequency": "daily",
+            "escalation_enabled": False,
+            "escalation_delay_minutes": 0,
+            "recipients": ["ops@company.com"],
+            "custom_message": "License utilization is below optimal level"
+        }
+    ]
+    return {"alerts": alerts}
+
+@app.post("/alerts/settings")
+def create_alert_setting(alert_data: dict):
+    """Create a new alert setting"""
+    alert_id = f"alert_{len(alert_data) + 1}"
+    return {"success": True, "alert_id": alert_id}
+
+@app.put("/alerts/settings/{alert_id}")
+def update_alert_setting(alert_id: str, alert_data: dict):
+    """Update an existing alert setting"""
+    return {"success": True}
+
+@app.delete("/alerts/settings/{alert_id}")
+def delete_alert_setting(alert_id: str):
+    """Delete an alert setting"""
+    return {"success": True}
+
+@app.post("/alerts/test/{alert_id}")
+def test_alert(alert_id: str):
+    """Test an alert by sending it immediately"""
+    return {"success": True, "message": "Test alert sent successfully"}
+
+# ============================================================================
+# GOAL SETTING ENDPOINTS
+# ============================================================================
+
+@app.get("/goals")
+def get_all_goals():
+    """Get all goals"""
+    goals = [
+        {
+            "id": "goal_1",
+            "name": "Increase Revenue by 20%",
+            "description": "Achieve 20% revenue growth this year",
+            "category": "Revenue",
+            "target_value": 120000,
+            "current_value": 85000,
+            "start_date": "2024-01-01",
+            "target_date": "2024-12-31",
+            "priority": "high",
+            "status": "active",
+            "measurement_unit": "Dollars ($)",
+            "milestones": ["Q1 Review", "Mid-Point Assessment"],
+            "success_criteria": "Achieve $120,000 in annual revenue",
+            "owner": "Sales Team",
+            "dependencies": ["Budget Approval", "Team Availability"]
+        },
+        {
+            "id": "goal_2",
+            "name": "Reduce Costs by 15%",
+            "description": "Optimize operational costs",
+            "category": "Cost Reduction",
+            "target_value": 15000,
+            "current_value": 8000,
+            "start_date": "2024-01-01",
+            "target_date": "2024-06-30",
+            "priority": "medium",
+            "status": "active",
+            "measurement_unit": "Dollars ($)",
+            "milestones": ["Cost Analysis", "Implementation"],
+            "success_criteria": "Reduce monthly costs by $1,250",
+            "owner": "Operations Team",
+            "dependencies": ["Vendor Negotiations"]
+        }
+    ]
+    return {"goals": goals}
+
+@app.get("/goals/overview")
+def get_goal_overview():
+    """Get goal overview statistics"""
+    return {
+        "total_goals": 5,
+        "completed_goals": 1,
+        "on_track_goals": 3,
+        "at_risk_goals": 1
+    }
+
+@app.post("/goals")
+def create_goal(goal_data: dict):
+    """Create a new goal"""
+    goal_id = f"goal_{len(goal_data) + 1}"
+    return {"success": True, "goal_id": goal_id}
+
+@app.put("/goals/{goal_id}")
+def update_goal(goal_id: str, goal_data: dict):
+    """Update an existing goal"""
+    return {"success": True}
+
+@app.delete("/goals/{goal_id}")
+def delete_goal(goal_id: str):
+    """Delete a goal"""
+    return {"success": True}
+
+# ============================================================================
+# USER PREFERENCES ENDPOINTS
+# ============================================================================
+
+@app.get("/user/preferences")
+def get_user_preferences():
+    """Get user preferences"""
+    preferences = {
+        "dashboard": {
+            "default_view": "overview",
+            "refresh_interval": 30,
+            "show_quick_actions": True,
+            "show_recent_activities": True,
+            "show_performance_widgets": True,
+            "show_alerts_panel": True,
+            "compact_mode": False
+        },
+        "theme": {
+            "mode": "light",
+            "primary_color": "#1976d2",
+            "secondary_color": "#dc004e",
+            "font_size": "medium",
+            "density": "comfortable"
+        },
+        "notifications": {
+            "email_notifications": True,
+            "push_notifications": True,
+            "sms_notifications": False,
+            "desktop_notifications": True,
+            "sound_enabled": True,
+            "notification_frequency": "immediate",
+            "quiet_hours_enabled": False,
+            "quiet_hours_start": "22:00",
+            "quiet_hours_end": "08:00"
+        },
+        "data": {
+            "auto_refresh": True,
+            "data_retention_days": 365,
+            "export_format": "excel",
+            "chart_animation": True,
+            "show_tooltips": True,
+            "show_legends": True
+        },
+        "security": {
+            "two_factor_auth": False,
+            "session_timeout": 30,
+            "password_change_required": False,
+            "login_notifications": True,
+            "api_access_enabled": True
+        },
+        "regional": {
+            "language": "en",
+            "timezone": "UTC",
+            "date_format": "MM/DD/YYYY",
+            "currency": "USD",
+            "number_format": "US"
+        }
+    }
+    return {"preferences": preferences}
+
+@app.put("/user/preferences")
+def update_user_preferences(request: Request):
+    """Update user preferences"""
+    data = request.json()
+    return {"success": True, "message": "Preferences updated successfully"}
+
 # WebSocket endpoints for real-time updates
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

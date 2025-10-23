@@ -123,7 +123,8 @@ const AnomalyDetection = () => {
   }, {});
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Summary Cards */}
       <Grid item xs={12} md={3}>
         <Card elevation={3}>
@@ -338,7 +339,8 @@ const AnomalyDetection = () => {
           </Typography>
         </Alert>
       </Grid>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 

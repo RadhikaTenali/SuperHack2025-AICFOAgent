@@ -120,7 +120,8 @@ const WeeklyReport = () => {
   }
 
   return (
-    <Grid container spacing={3}>
+    <Box>
+      <Grid container spacing={3}>
       {/* Header */}
       <Grid item xs={12}>
         <Card elevation={3}>
@@ -317,7 +318,8 @@ const WeeklyReport = () => {
           </Typography>
         </Alert>
       </Grid>
-    </Grid>
+      </Grid>
+    </Box>
   );
 };
 
