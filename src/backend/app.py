@@ -1,6 +1,8 @@
 from fastapi import HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request , WebSocket, WebSocketDisconnect 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import uvicorn
 import logging
 import boto3
@@ -184,11 +186,15 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "https://*.railway.app", "https://*.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for React frontend (production)
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Mock SuperOps Data
 MOCK_CLIENTS = {
@@ -243,6 +249,9 @@ class ScenarioRequest(BaseModel):
 
 @app.get("/")
 def read_root():
+    # Serve React frontend in production
+    if os.path.exists("static/index.html"):
+        return FileResponse("static/index.html")
     return {"message": "Welcome to AI CFO Agent - Autonomous CFO with Digital Twin for MSPs"}
 
 @app.get("/dashboard/overview")
