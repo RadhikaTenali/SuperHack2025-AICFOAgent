@@ -6,6 +6,7 @@
 ### Frontend Stack (✅ COMPLETE)
 - **React 19** - Modern React with latest features and hooks
 - **Material-UI (MUI) v7** - Professional component library with consistent design
+- **Tailwind CSS** - Utility-first CSS framework for custom styling
 - **Axios** - HTTP client for API communication with interceptors
 - **React Router DOM** - Client-side routing for single-page application
 - **WebSocket Client** - Real-time data synchronization
@@ -23,6 +24,8 @@
 - **AWS Bedrock** - Core AI reasoning engine (Claude 3.5 Sonnet)
 - **Nova ACT** - Browser automation for license tracking across vendors
 - **MCP (Model Context Protocol)** - Multi-agent workflow orchestration
+- **LangChain** - Advanced AI workflow orchestration and chain management
+- **Strand Agents SDK** - Composable agent workflows and coordination
 - **Boto3** - AWS SDK for Python with S3 and Bedrock integration
 - **Vector Store RAG** - Pattern recognition and similarity analysis
 - **Autonomous Actions** - Self-executing workflows with guardrails
@@ -40,6 +43,8 @@
 - **Jest** - JavaScript testing framework for unit and integration tests
 - **Selenium WebDriver** - Browser automation testing for Nova ACT
 - **FastAPI TestClient** - API endpoint testing with mock data
+- **Amazon Q Developer** - AI-powered development assistance
+- **Kiro AI IDE** - Rapid prototyping and debugging environment
 
 ## Common Commands - TESTED & WORKING
 
